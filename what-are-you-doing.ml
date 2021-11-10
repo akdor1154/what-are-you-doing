@@ -103,7 +103,7 @@ let main () =
       | _ -> failwith "Invalid session type." in
 
   let speclist = [
-    ("--event", Arg.Symbol (["SESSION_START"; "SESSION_INTERRUPT"; "SESSION_STOP"], set_event), "Event type" );
+    ("--event", Arg.Symbol (["SESSION_START"; "SESSION_INTERRUPT"; "SESSION_END"], set_event), "Event type" );
     ("--session-type", Arg.Symbol (["POMODORO"; "LONG_BREAK"; "SHORT_BREAK"], set_session_type), "Session type") 
   ] in
   Arg.parse speclist get_action usage_msg;
@@ -112,6 +112,7 @@ let main () =
     | Some(Start), Some(Pomodoro) -> Some(Ask)
     | Some(Interrupt), Some(Pomodoro) -> Some(Clear)
     | Some(Complete), Some(Pomodoro) -> Some(Clear)
+    | Some(_), Some(_) -> None (* break *)
     | None, None -> None
     | _, _ -> failwith ("If using --event and --session type, you must pass both") in
   
