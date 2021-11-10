@@ -92,7 +92,7 @@ let main () =
     event_ref := match s with
       | "SESSION_START" -> Some(Start)
       | "SESSION_INTERRUPT" -> Some(Interrupt)
-      | "SESSION_COMPLETE" -> Some(Complete)
+      | "SESSION_END" -> Some(Complete)
       | _ -> failwith "Invalid event." in
     
   let set_session_type s =
