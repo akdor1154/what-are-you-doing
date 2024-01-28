@@ -49,8 +49,12 @@ enum Event {
 
 #[derive(Clone, PartialEq, Eq, clap::ValueEnum)]
 enum SessionType {
+	#[clap(name("POMODORO"))]
 	Pomodoro,
-	Break,
+	#[clap(name("SHORT_BREAK"))]
+	ShortBreak,
+	#[clap(name("LONG_BREAK"))]
+	LongBreak,
 }
 
 #[derive(Clone, PartialEq, Eq, clap::ValueEnum, Debug)]
@@ -83,25 +87,27 @@ fn main() {
 	let action_from_event_and_session = {
 		let event = matches.get_one::<Event>("event");
 		let session_type = matches.get_one::<SessionType>("session-type");
-		match (event, session_type) {
-			(Some(Event::Start), Some(SessionType::Pomodoro)) => Some(Action::Ask),
-			(Some(Event::Interrupt), Some(SessionType::Pomodoro)) => Some(Action::Clear),
-			(Some(Event::Complete), Some(SessionType::Pomodoro)) => Some(Action::Clear),
-			(Some(_), Some(_)) => None,
-			(None, None) => None,
-			(_, _) => panic!("If using --event and --session-type, you must pass both"),
+		match (event, session_type, action_from_arg) {
+			(Some(Event::Start), Some(SessionType::Pomodoro), _) => Some(Action::Ask),
+			(Some(Event::Interrupt), Some(SessionType::Pomodoro), _) => Some(Action::Clear),
+			(Some(Event::Complete), Some(SessionType::Pomodoro), _) => Some(Action::Clear),
+			(Some(_), Some(_), _) => None,
+			(None, None, Some(_)) => None,
+			(None, None, None) => panic!("you need one of action or event/session"),
+			(_, _, _) => panic!("If using --event and --session-type, you must pass both"),
 		}
 	};
 	let action = match (action_from_arg, action_from_event_and_session) {
-		(Some(a), None) => a.to_owned(),
-		(None, Some(a)) => a,
-		(Some(_a), Some(_b)) => panic!("You can pass only one of action or event+session"),
-		(None, None) => panic!("you need one of action or event/session"),
+		(Some(a), None) => Some(a.to_owned()),
+		(None, Some(a)) => Some(a),
+		(Some(_a), Some(_b)) => panic!("you can pass only one of action or event/session"),
+		(None, None) => None,
 	};
 
 	match action {
-		Action::Ask => ask(),
-		Action::Read => read(),
-		Action::Clear => clear(),
+		Some(Action::Ask) => ask(),
+		Some(Action::Read) => read(),
+		Some(Action::Clear) => clear(),
+		None => (),
 	}
 }
